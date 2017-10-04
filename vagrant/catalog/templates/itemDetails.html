@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Catalog</title>
+</head>
+
+<body>
+  <div class='catalogDiv'>
+    <h1>Catalog</h1>
+    
+    {% for category in allCategories %}
+    <a href="{{url_for('showCategoryItems', category_id=category.id)}}">
+      <p>{{category.name}}</p>
+    </a>
+    {% endfor %}
+  </div>
+  <h1>{{item.name}}</h1>
+  <p>{{item.description}}</p>
+  {% if allowEdit %}
+  <p>
+    <a href="{{url_for('editItem', item_id=item.id,
+      category_id=item.category_id)}}">Edit</a> |
+    <a href="{{url_for('deleteItem', item_id=item.id,
+      category_id=item.category_id)}}">Delete</a>
+  </p>
+  {% endif %}
+</body>
+</html>

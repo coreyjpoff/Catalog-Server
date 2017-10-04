@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Catalog</title>
+</head>
+
+<body>
+  <div class='catalogDiv'>
+    <h1>Catalog</h1>
+    
+    {% for category in allCategories %}
+    <a href="{{url_for('showCategoryItems', category_id=category.id)}}">
+      <p>{{category.name}}</p>
+    </a>
+    {% endfor %}
+  </div>
+  <h1>{{selectedCategory.name}} Items ({{items|length}}
+    {%if items|length != 1 %}
+    items)</h1>
+    {% else %}
+    item)</h1>
+    {% endif %}
+  {% for item in items %}
+  <a href="{{url_for('showItem', category_id=selectedCategory.id, item_id=item.id)}}">
+    <p>{{item.name}}</p>
+  </a>
+  {% endfor %}
+  {%if 'username' in session %}
+  <a href="{{url_for('newItem', init_category_id=selectedCategory.id)}}">
+    <h3>Create a new item</h3>
+  </a>
+  {% endif %}
+</body>
+</html>

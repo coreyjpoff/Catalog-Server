@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Catalog</title>
+</head>
+
+<body>
+  <h1>New Item</h1>
+  
+  <form action="#" method='post'>
+    <p>Name</p>
+    <input type='text' size='30' name='name'>
+    <p>Description</p>
+    <textarea cols='30' rows='5' name='description'></textarea>
+    <p>Category</p>
+    <select name='category_id'>
+      {% for category in categories %}
+      {% if category.id == init_category_id|int %}
+      <option selected="selected" value='{{category.id}}'>
+        {{category.name}}
+      </option>
+      {% else %}
+      <option value='{{category.id}}'>{{category.name}}</option>
+      {% endif %}
+      {% endfor %}
+    </select>
+    <input type='submit' value='Create'>
+  </form>
+</body>
+</html>

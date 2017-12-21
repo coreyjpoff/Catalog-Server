@@ -3,26 +3,31 @@ from flask import Flask, render_template, request, redirect, jsonify, \
     url_for, make_response, g
 from flask import session as login_session
 from flask_httpauth import HTTPBasicAuth
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-from database_setup import Base, User, Category, CategoryItem
+from psycopg2 import connect
 import httplib2
 import json
 import requests
 import random
 import string
 
+# from sqlalchemy import create_engine
+# from sqlalchemy.orm import sessionmaker
+# from database_setup import Base, User, Category, CategoryItem
 # Global vars and constants
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-engine = create_engine('sqlite:///catalog.db')
-Base.metadata.bind = engine
+# engine = create_engine('sqlite:///catalog.db')
+# Base.metadata.bind = engine
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+# DBSession = sessionmaker(bind=engine)
+# session = DBSession()
+
+try:
+    db = connect(database="catalog", user="catalog", password="catalog")
+    cur = db.cursor()
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read()

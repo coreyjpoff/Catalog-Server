@@ -1,61 +1,52 @@
-from psycopg2 import connect
-from config import config
+#!/usr/bin/env python3
+import psycopg2
 
 def create_tables():
     """create tables in database"""
     commands = (
     """
-    CREATE TABLE Users (
+    CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL
+    )
+    """,
+    """
+    CREATE TABLE categories (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL
     )
     """,
     """
-    CREATE TABLE Category (
+    CREATE TABLE categoryitems (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL
+        name VARCHAR(255) NOT NULL,
+        description VARCHAR(1000),
+        category_id INTEGER,
+        user_id INTEGER,
+        FOREIGN KEY (category_id)
+            REFERENCES categories (id)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        FOREIGN KEY (user_id)
+            REFERENCES users (id)
+            ON UPDATE CASCADE ON DELETE CASCADE
     )
-    """,
     """
-    CREATE TABLE CategoryItem (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255), NOT NULL,
-        category_id INTEGER
-        # XCJP here --figure out if i need cascade on forein keys
     )
-    """
-    )
-    
-def createCategory():
-    columnNamesAndTypes = 'id serial PRIMARY KEY, name varchar'
-    createTable('Category', columnNamesAndTypes)
-    
-def createCategoryItem():
-    columnNamesAndTypes = 'id serial PRIMARY KEY, name varchar, description varchar, category_id
-    
-# class CategoryItem(Base):
-#     __tablename__ = 'category_item'
-#
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String(255), nullable=False)
-#     description = Column(String(1000))
-#     category_id = Column(Integer, ForeignKey('category.id'))
-#     category = relationship(Category)
-#     user_id = Column(Integer, ForeignKey('user.id'))
-#     user = relationship(User)
-#
-#     @property
-#     def serialize(self):
-#         """Return object data in easily serializeable format"""
-#         return {
-#             'id': self.id,
-#             'name': self.name,
-#             'description': self.description,
-#             'category_id': self.category_id,
-#         }
 
+    conn = None
+    try:
+        conn = psycopg2.connect(database="catalog", user="catalog", password="catalog")
+        cur = conn.cursor()
+        for command in commands:
+            cur.execute(command)
+            conn.commit()
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
 
-# engine = create_engine('sqlite:///catalog.db')
-#
-#
-# Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    create_tables()

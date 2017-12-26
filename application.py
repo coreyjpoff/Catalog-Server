@@ -12,9 +12,12 @@ import requests
 import random
 import string
 
+# XCJP see above--change the flask login_session to just session?
+
 # from sqlalchemy import create_engine
 # from sqlalchemy.orm import sessionmaker
 # from database_setup import Base, User, Category, CategoryItem
+
 # Global vars and constants
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -25,10 +28,6 @@ auth = HTTPBasicAuth()
 # DBSession = sessionmaker(bind=engine)
 # session = DBSession()
 
-try:
-    db = connect(database="catalog", user="catalog", password="catalog")
-    cur = db.cursor()
-
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read()
 )['web']['client_id']
@@ -37,16 +36,19 @@ CLIENT_ID = json.loads(
 # JSON APIs
 @app.route('/catalog/JSON')
 def categoriesJSON():
-    categories = session.query(Category).all()
+    # XCJP
+    # categories = session.query(Category).all()
     returnList = []
     for c in categories:
         returnObj = c.serialize
-        items = session.query(CategoryItem).filter_by(category_id=c.id).all()
+        # XCJP
+        # items = session.query(CategoryItem).filter_by(category_id=c.id).all()
         returnObj['Item'] = []
         for item in items:
             returnObj['Item'].append(item.serialize)
         returnList.append(returnObj)
-    return jsonify(Category=returnList)
+        # XCJP
+    # return jsonify(Category=returnList)
 
 
 # page renders
@@ -183,20 +185,16 @@ def googleLogout(access_token):
 
 
 def createUser(login_session):
-    newUser = User(
-        name=login_session['username'],
-        email=login_session['email']
-    )
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
+    SQL = 'INSERT INTO users VALUES (%s, %s)'
+    execute(SQL, (login_session['username'], login_session['email']))
+    return getUserID(email)
 
 
 def getUserID(email):
     try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
+        SQL = 'SELECT id FROM users WHERE email = %s'
+        user = query(SQL, email)
+        return user[0]
     except:
         return None
 
@@ -207,14 +205,15 @@ def showHome():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
-    categories = session.query(Category).all()
-    latestItems = session.query(CategoryItem).join(CategoryItem.category) \
-        .order_by(CategoryItem.id.desc()).limit(10).all()
+    # XCJP
+    # categories = session.query(Category).all()
+    # latestItems = session.query(CategoryItem).join(CategoryItem.category) \
+    #     .order_by(CategoryItem.id.desc()).limit(10).all()
     return render_template(
         'catalog.html',
-        categories=categories,
-        latestItems=latestItems,
-        STATE=state
+        # categories=categories,
+        # latestItems=latestItems,
+        # STATE=state
     )
 
 
@@ -223,9 +222,10 @@ def newCategory():
     if 'username' not in login_session:
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        newCategory = Category(name=request.form['name'])
-        session.add(newCategory)
-        session.commit()
+        # newCategory = Category(name=request.form['name'])
+        # XCJP
+        # session.add(newCategory)
+        # session.commit()
         return redirect(url_for('showHome'))
     else:
         return render_template('newCategory.html')
@@ -234,10 +234,11 @@ def newCategory():
 @app.route('/category/<int:category_id>/')
 @app.route('/category/<int:category_id>/items')
 def showCategoryItems(category_id):
-    allCategories = session.query(Category).all()
-    selectedCategory = session.query(Category).filter_by(id=category_id).one()
-    items = session.query(CategoryItem).filter_by(category_id=category_id). \
-        all()
+    # XCJP
+    # allCategories = session.query(Category).all()
+    # selectedCategory = session.query(Category).filter_by(id=category_id).one()
+    # items = session.query(CategoryItem).filter_by(category_id=category_id). \
+    #     all()
     return render_template(
         'categoryItems.html',
         allCategories=allCategories,
@@ -251,21 +252,23 @@ def newItem(init_category_id):
     if 'username' not in login_session:
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        newItem = CategoryItem(
-            name=request.form['name'],
-            description=request.form['description'],
-            category_id=request.form['category_id'],
-            user_id=login_session['user_id']
-        )
-        session.add(newItem)
-        session.commit()
+        # newItem = CategoryItem(
+        #     name=request.form['name'],
+        #     description=request.form['description'],
+        #     category_id=request.form['category_id'],
+        #     user_id=login_session['user_id']
+        # )
+        # XCJP
+        # session.add(newItem)
+        # session.commit()
         return redirect(url_for(
             'showItem',
             item_id=newItem.id,
             category_id=newItem.category_id
         ))
     else:
-        categories = session.query(Category).all()
+        # XCJP
+        # categories = session.query(Category).all()
         if init_category_id == 'NONE' and len(categories) > 0:
             init_category_id = categories[0].id
         return render_template(
@@ -277,8 +280,9 @@ def newItem(init_category_id):
 
 @app.route('/category/<int:category_id>/items/<int:item_id>')
 def showItem(item_id, category_id):
-    item = session.query(CategoryItem).filter_by(id=item_id).one()
-    allCategories = session.query(Category).all()
+    # XCJP
+    # item = session.query(CategoryItem).filter_by(id=item_id).one()
+    # allCategories = session.query(Category).all()
     allowEdit = item.user_id == login_session.get('user_id')
     return render_template(
         'itemDetails.html',
@@ -293,7 +297,8 @@ def showItem(item_id, category_id):
     methods=['GET', 'POST']
 )
 def editItem(item_id, category_id):
-    item = session.query(CategoryItem).filter_by(id=item_id).one()
+    # XCJP
+    # item = session.query(CategoryItem).filter_by(id=item_id).one()
     if item.user_id != login_session.get('user_id'):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
@@ -303,15 +308,17 @@ def editItem(item_id, category_id):
             item.description = request.form['description']
         if request.form['category_id']:
             item.category_id = request.form['category_id']
-        session.add(item)
-        session.commit()
+        # XCJP
+        # session.add(item)
+        # session.commit()
         return redirect(url_for(
             'showItem',
             item_id=item.id,
             category_id=item.category_id
         ))
     else:
-        allCategories = session.query(Category).all()
+        # XCJP
+        # allCategories = session.query(Category).all()
         return render_template(
             'editItem.html',
             item=item,
@@ -323,13 +330,15 @@ def editItem(item_id, category_id):
     '/category/<int:category_id>/items/<int:item_id>/delete',
     methods=['GET', 'POST'])
 def deleteItem(item_id, category_id):
-    item = session.query(CategoryItem).filter_by(id=item_id).one()
+    # XCJP
+    # item = session.query(CategoryItem).filter_by(id=item_id).one()
     if item.user_id != login_session.get('user_id'):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
         itemId = item.category_id
-        session.delete(item)
-        session.commit()
+        # XCJP
+        # session.delete(item)
+        # session.commit()
         return redirect(url_for(
             'showCategoryItems',
             category_id=itemId
@@ -339,6 +348,33 @@ def deleteItem(item_id, category_id):
             'deleteItem.html',
             item=item,
         )
+
+def execute(SQL, params):
+    try:
+        conn = psycopg2.connect(database="catalog", user="catalog", password="catalog")
+        cur = conn.cursor()
+        cur.execute(SQL, params)
+        conn.commit()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+def query(SQL, params):
+    try:
+        conn = psycopg2.connect(database="catalog", user="catalog", password="catalog")
+        cur = conn.cursor()
+        cur.execute(SQL, params)
+        results = cur.fetchall()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+    return results
+
+# openCon() XCJP implement this?
 
 
 if __name__ == '__main__':

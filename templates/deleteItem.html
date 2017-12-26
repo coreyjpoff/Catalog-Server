@@ -9,10 +9,10 @@
   <h1>Delete Item</h1>
   
   <form action="#" method='post'>
-    <p>Are you sure you want to delete {{item.name}}?</p>
+    <p>Are you sure you want to delete {{item[1]}}?</p>
     <input type='submit' value='Delete'>
-    <a href="{{url_for('showItem', item_id=item.id,
-      category_id=item.category_id)}}">Cancel</a>
+    <a href="{{url_for('showItem', item_id=item[0],
+      category_id=item[3])}}">Cancel</a>
   </form>
 </body>
 </html>

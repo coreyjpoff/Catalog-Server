@@ -10,24 +10,24 @@
     <h1>Catalog</h1>
     
     {% for category in allCategories %}
-    <a href="{{url_for('showCategoryItems', category_id=category.id)}}">
-      <p>{{category.name}}</p>
+    <a href="{{url_for('showCategoryItems', category_id=category[0])}}">
+      <p>{{category[1]}}</p>
     </a>
     {% endfor %}
   </div>
-  <h1>{{selectedCategory.name}} Items ({{items|length}}
+  <h1>{{selectedCategory[1]}} Items ({{items|length}}
     {%if items|length != 1 %}
     items)</h1>
     {% else %}
     item)</h1>
     {% endif %}
   {% for item in items %}
-  <a href="{{url_for('showItem', category_id=selectedCategory.id, item_id=item.id)}}">
-    <p>{{item.name}}</p>
+  <a href="{{url_for('showItem', category_id=selectedCategory[0], item_id=item[0])}}">
+    <p>{{item[1]}}</p>
   </a>
   {% endfor %}
   {%if 'username' in session %}
-  <a href="{{url_for('newItem', init_category_id=selectedCategory.id)}}">
+  <a href="{{url_for('newItem', init_category_id=selectedCategory[0])}}">
     <h3>Create a new item</h3>
   </a>
   {% endif %}

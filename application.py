@@ -5,50 +5,19 @@ from flask import session as login_session
 from flask_httpauth import HTTPBasicAuth
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-from psycopg2 import connect
+import psycopg2
 import httplib2
 import json
 import requests
 import random
 import string
 
-# XCJP see above--change the flask login_session to just session?
-
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import sessionmaker
-# from database_setup import Base, User, Category, CategoryItem
-
 # Global vars and constants
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-
-# engine = create_engine('sqlite:///catalog.db')
-# Base.metadata.bind = engine
-
-# DBSession = sessionmaker(bind=engine)
-# session = DBSession()
-
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read()
 )['web']['client_id']
-
-
-# JSON APIs
-@app.route('/catalog/JSON')
-def categoriesJSON():
-    # XCJP
-    # categories = session.query(Category).all()
-    returnList = []
-    for c in categories:
-        returnObj = c.serialize
-        # XCJP
-        # items = session.query(CategoryItem).filter_by(category_id=c.id).all()
-        returnObj['Item'] = []
-        for item in items:
-            returnObj['Item'].append(item.serialize)
-        returnList.append(returnObj)
-        # XCJP
-    # return jsonify(Category=returnList)
 
 
 # page renders
@@ -155,7 +124,7 @@ def googleLogin(auth_code):
     login_session['email'] = data['email']
     login_session['provider'] = 'google'
     # see if user exists, if it doesn't make a new one
-    user_id = getUserID(data["email"])
+    user_id = getUserID(data['email'])
     if not user_id:
         user_id = createUser(login_session)
     login_session['user_id'] = user_id
@@ -185,19 +154,85 @@ def googleLogout(access_token):
 
 
 def createUser(login_session):
-    SQL = 'INSERT INTO users VALUES (%s, %s)'
+    SQL = 'INSERT INTO users (name, email) VALUES (%s, %s)'
     execute(SQL, (login_session['username'], login_session['email']))
-    return getUserID(email)
+    return getUserID(login_session['email'])
 
 
 def getUserID(email):
     try:
-        SQL = 'SELECT id FROM users WHERE email = %s'
-        user = query(SQL, email)
-        return user[0]
+        SQL = 'SELECT users.id FROM users WHERE users.email = %s'
+        user = query(SQL, (email,))
+        return user[0][0]
     except:
         return None
 
+def getCategories():
+    try:
+        SQL = 'SELECT * FROM categories;'
+        categories = query(SQL)
+        return categories
+    except:
+        return []
+        
+def getLatestItems():
+    try:
+        SQL = 'SELECT * FROM categoryitems ORDER BY categoryitems.id DESC LIMIT 10;'
+        items = query(SQL)
+        return items
+    except:
+        return []
+
+def createCategory(name):
+    SQL = 'INSERT INTO categories (name) VALUES (%s)'
+    execute(SQL, (name,))
+    
+def getCategory(id):
+    try:
+        SQL = 'SELECT * FROM categories WHERE categories.id = %s'
+        category = query(SQL, (id,))
+        return category[0]
+    except:
+        return []
+
+def getItems(category_id):
+    try:
+        SQL = 'SELECT * FROM categoryitems WHERE categoryitems.category_id = %s'
+        items = query(SQL, (category_id,))
+        return items
+    except:
+        return []
+
+def addItem(name, description, category_id, user_id):
+    SQL = 'INSERT INTO categoryitems (name, description, category_id, user_id) VALUES (%s, %s, %s, %s)'
+    execute(SQL, (name, description, category_id, user_id))
+    return getItem(name, description, category_id, user_id)
+
+def updateItem(item):
+    SQL = 'UPDATE categoryitems SET name = %s, description = %s, category_id = %s WHERE id = %s'
+    execute(SQL, (item[1], item[2], item[3], item[0]))
+    return getItemById(item[0])
+    
+def getItem(name, description, category_id, user_id):
+    try:
+        SQL = 'SELECT * FROM categoryitems WHERE categoryitems.name = %s AND categoryitems.description = %s AND categoryitems.category_id = %s AND categoryitems.user_id = %s'
+        item = query(SQL, (name, description, category_id, user_id))
+        return item[0]
+    except:
+        return []
+        
+def getItemById(id):
+    try:
+        SQL = 'SELECT * FROM categoryitems WHERE categoryitems.id = %s'
+        item = query(SQL, (id,))
+        return item[0]
+    except:
+        return []
+        
+def removeItemFromDb(id):
+    SQL = 'DELETE FROM categoryitems WHERE id = %s'
+    execute(SQL, (id,))
+    
 
 @app.route('/catalog/')
 @app.route('/')
@@ -205,15 +240,13 @@ def showHome():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
-    # XCJP
-    # categories = session.query(Category).all()
-    # latestItems = session.query(CategoryItem).join(CategoryItem.category) \
-    #     .order_by(CategoryItem.id.desc()).limit(10).all()
+    categories = getCategories()
+    latestItems = getLatestItems()
     return render_template(
         'catalog.html',
-        # categories=categories,
-        # latestItems=latestItems,
-        # STATE=state
+        categories=categories,
+        latestItems=latestItems,
+        STATE=state
     )
 
 
@@ -222,10 +255,7 @@ def newCategory():
     if 'username' not in login_session:
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        # newCategory = Category(name=request.form['name'])
-        # XCJP
-        # session.add(newCategory)
-        # session.commit()
+        createCategory(request.form['name'])
         return redirect(url_for('showHome'))
     else:
         return render_template('newCategory.html')
@@ -234,11 +264,9 @@ def newCategory():
 @app.route('/category/<int:category_id>/')
 @app.route('/category/<int:category_id>/items')
 def showCategoryItems(category_id):
-    # XCJP
-    # allCategories = session.query(Category).all()
-    # selectedCategory = session.query(Category).filter_by(id=category_id).one()
-    # items = session.query(CategoryItem).filter_by(category_id=category_id). \
-    #     all()
+    allCategories = getCategories()
+    selectedCategory = getCategory(category_id)
+    items = getItems(category_id)
     return render_template(
         'categoryItems.html',
         allCategories=allCategories,
@@ -252,23 +280,23 @@ def newItem(init_category_id):
     if 'username' not in login_session:
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        # newItem = CategoryItem(
-        #     name=request.form['name'],
-        #     description=request.form['description'],
-        #     category_id=request.form['category_id'],
-        #     user_id=login_session['user_id']
-        # )
-        # XCJP
-        # session.add(newItem)
-        # session.commit()
+        print request.form['name']
+        print request.form['description']
+        print request.form['category_id']
+        print login_session['user_id']
+        item = addItem(
+            request.form['name'],
+            request.form['description'],
+            request.form['category_id'],
+            login_session['user_id']
+        )
         return redirect(url_for(
             'showItem',
-            item_id=newItem.id,
-            category_id=newItem.category_id
+            item_id=item[0],
+            category_id=item[3]
         ))
     else:
-        # XCJP
-        # categories = session.query(Category).all()
+        categories = getCategories()
         if init_category_id == 'NONE' and len(categories) > 0:
             init_category_id = categories[0].id
         return render_template(
@@ -280,10 +308,9 @@ def newItem(init_category_id):
 
 @app.route('/category/<int:category_id>/items/<int:item_id>')
 def showItem(item_id, category_id):
-    # XCJP
-    # item = session.query(CategoryItem).filter_by(id=item_id).one()
-    # allCategories = session.query(Category).all()
-    allowEdit = item.user_id == login_session.get('user_id')
+    item = getItemById(item_id)
+    allCategories = getCategories()
+    allowEdit = item[4] == login_session.get('user_id')
     return render_template(
         'itemDetails.html',
         item=item,
@@ -297,28 +324,25 @@ def showItem(item_id, category_id):
     methods=['GET', 'POST']
 )
 def editItem(item_id, category_id):
-    # XCJP
-    # item = session.query(CategoryItem).filter_by(id=item_id).one()
-    if item.user_id != login_session.get('user_id'):
+    item = getItemById(item_id)
+    if item[4] != login_session.get('user_id'):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
+        item = list(item)
         if request.form['name']:
-            item.name = request.form['name']
+            item[1] = request.form['name']
         if request.form['description']:
-            item.description = request.form['description']
+            item[2] = request.form['description']
         if request.form['category_id']:
-            item.category_id = request.form['category_id']
-        # XCJP
-        # session.add(item)
-        # session.commit()
+            item[3] = request.form['category_id']
+        item = updateItem(tuple(item))
         return redirect(url_for(
             'showItem',
-            item_id=item.id,
-            category_id=item.category_id
+            item_id=item[0],
+            category_id=item[3]
         ))
     else:
-        # XCJP
-        # allCategories = session.query(Category).all()
+        allCategories = getCategories()
         return render_template(
             'editItem.html',
             item=item,
@@ -330,15 +354,12 @@ def editItem(item_id, category_id):
     '/category/<int:category_id>/items/<int:item_id>/delete',
     methods=['GET', 'POST'])
 def deleteItem(item_id, category_id):
-    # XCJP
-    # item = session.query(CategoryItem).filter_by(id=item_id).one()
-    if item.user_id != login_session.get('user_id'):
+    item = getItemById(item_id)
+    if item[4] != login_session.get('user_id'):
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        itemId = item.category_id
-        # XCJP
-        # session.delete(item)
-        # session.commit()
+        itemId = item[3]
+        removeItemFromDb(item_id)
         return redirect(url_for(
             'showCategoryItems',
             category_id=itemId
@@ -350,8 +371,9 @@ def deleteItem(item_id, category_id):
         )
 
 def execute(SQL, params):
+    conn = None
     try:
-        conn = psycopg2.connect(database="catalog", user="catalog", password="catalog")
+        conn = psycopg2.connect(database='catalog', user='catalog', password='catalog')
         cur = conn.cursor()
         cur.execute(SQL, params)
         conn.commit()
@@ -361,11 +383,14 @@ def execute(SQL, params):
         if conn is not None:
             conn.close()
 
-def query(SQL, params):
+def query(SQL, params=None):
     try:
-        conn = psycopg2.connect(database="catalog", user="catalog", password="catalog")
+        conn = psycopg2.connect(database='catalog', user='catalog', password='catalog')
         cur = conn.cursor()
-        cur.execute(SQL, params)
+        if params is not None:
+            cur.execute(SQL, params)
+        else:
+            cur.execute(SQL)
         results = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -373,8 +398,6 @@ def query(SQL, params):
         if conn is not None:
             conn.close()
     return results
-
-# openCon() XCJP implement this?
 
 
 if __name__ == '__main__':

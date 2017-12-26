@@ -35,8 +35,8 @@
     <h2>Catalog</h2>
     
     {% for category in categories %}
-    <a href="{{url_for('showCategoryItems', category_id = category.id)}}">
-      <p>{{category.name}}</p>
+    <a href="{{url_for('showCategoryItems', category_id = category[0])}}">
+      <p>{{category[1]}}</p>
     </a>
     {% endfor %}
     {%if 'username' in session %}
@@ -55,10 +55,8 @@
     
     {% for item in latestItems %}
     <p>
-      <a href="{{url_for('showItem', category_id=item.category_id,
-        item_id=item.id)}}"><span>{{item.name}}</span></a>
-      <a href="{{url_for('showCategoryItems', category_id
-        =item.category_id)}}"><span>({{item.category.name}})</span></a>
+      <a href="{{url_for('showItem', category_id=item[3],
+        item_id=item[0])}}"><span>{{item[1]}}</span></a>
     </p>
     {% endfor %}
   </div>

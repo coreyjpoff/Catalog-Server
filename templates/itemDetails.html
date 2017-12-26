@@ -10,19 +10,19 @@
     <h1>Catalog</h1>
     
     {% for category in allCategories %}
-    <a href="{{url_for('showCategoryItems', category_id=category.id)}}">
-      <p>{{category.name}}</p>
+    <a href="{{url_for('showCategoryItems', category_id=category[0])}}">
+      <p>{{category[1]}}</p>
     </a>
     {% endfor %}
   </div>
-  <h1>{{item.name}}</h1>
-  <p>{{item.description}}</p>
+  <h1>{{item[1]}}</h1>
+  <p>{{item[2]}}</p>
   {% if allowEdit %}
   <p>
-    <a href="{{url_for('editItem', item_id=item.id,
-      category_id=item.category_id)}}">Edit</a> |
-    <a href="{{url_for('deleteItem', item_id=item.id,
-      category_id=item.category_id)}}">Delete</a>
+    <a href="{{url_for('editItem', item_id=item[0],
+      category_id=item[3])}}">Edit</a> |
+    <a href="{{url_for('deleteItem', item_id=item[0],
+      category_id=item[3])}}">Delete</a>
   </p>
   {% endif %}
 </body>

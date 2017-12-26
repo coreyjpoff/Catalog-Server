@@ -10,24 +10,24 @@
   
   <form action="#" method='post'>
     <p>Name</p>
-    <input type='text' size='30' name='name' value='{{item.name}}'>
+    <input type='text' size='30' name='name' value='{{item[1]}}'>
     <p>Description</p>
-    <textarea cols='30' rows='5' name='description'>{{item.description}}</textarea>
+    <textarea cols='30' rows='5' name='description'>{{item[2]}}</textarea>
     <p>Category</p>
     <select name='category_id'>
       {% for category in allCategories %}
-      {% if category.id==item.category_id %}
-      <option value='{{category.id}}' selected>
+      {% if category[0]==item[3] %}
+      <option value='{{category[0]}}' selected>
       {% else %}
-      <option value='{{category.id}}'>
+      <option value='{{category[0]}}'>
       {% endif %}
-        {{category.name}}
+        {{category[1]}}
       </option>
       {% endfor %}
     </select>
     <input type='submit' value='Save'>
-    <a href="{{url_for('showItem', item_id=item.id,
-      category_id=item.category_id)}}">Cancel</a>
+    <a href="{{url_for('showItem', item_id=item[0],
+      category_id=item[3])}}">Cancel</a>
   </form>
 </body>
 </html>

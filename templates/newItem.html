@@ -16,12 +16,12 @@
     <p>Category</p>
     <select name='category_id'>
       {% for category in categories %}
-      {% if category.id == init_category_id|int %}
-      <option selected="selected" value='{{category.id}}'>
-        {{category.name}}
+      {% if category[0] == init_category_id|int %}
+      <option selected="selected" value='{{category[0]}}'>
+        {{category[1]}}
       </option>
       {% else %}
-      <option value='{{category.id}}'>{{category.name}}</option>
+      <option value='{{category[0]}}'>{{category[1]}}</option>
       {% endif %}
       {% endfor %}
     </select>

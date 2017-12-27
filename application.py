@@ -280,10 +280,6 @@ def newItem(init_category_id):
     if 'username' not in login_session:
         return redirect(url_for('showHome'))
     if request.method == 'POST':
-        print request.form['name']
-        print request.form['description']
-        print request.form['category_id']
-        print login_session['user_id']
         item = addItem(
             request.form['name'],
             request.form['description'],

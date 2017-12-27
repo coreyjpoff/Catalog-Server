@@ -66,7 +66,7 @@ def googleLogin(auth_code):
     try:
         # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets(
-            './client_secrets.json',
+            '/home/catalog/Catalog-Server/client_secrets.json',
             scope=''
         )
         oauth_flow.redirect_uri = 'postmessage'

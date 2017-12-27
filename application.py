@@ -14,9 +14,12 @@ import string
 
 # Global vars and constants
 app = Flask(__name__)
+app.secret_key = ''.join(
+    random.choice(string.ascii_uppercase + string.digits)
+    for x in range(32))
 auth = HTTPBasicAuth()
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read()
+    open('/home/catalog/Catalog-Server/client_secrets.json', 'r').read()
 )['web']['client_id']
 
 
@@ -63,7 +66,7 @@ def googleLogin(auth_code):
     try:
         # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets(
-            'client_secrets.json',
+            './client_secrets.json',
             scope=''
         )
         oauth_flow.redirect_uri = 'postmessage'
@@ -232,13 +235,13 @@ def getItemById(id):
 def removeItemFromDb(id):
     SQL = 'DELETE FROM categoryitems WHERE id = %s'
     execute(SQL, (id,))
-    
+
 
 @app.route('/catalog/')
 @app.route('/')
 def showHome():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in xrange(32))
+                    for x in range(32))
     login_session['state'] = state
     categories = getCategories()
     latestItems = getLatestItems()
@@ -397,8 +400,5 @@ def query(SQL, params=None):
 
 
 if __name__ == '__main__':
-    app.secret_key = ''.join(
-        random.choice(string.ascii_uppercase + string.digits)
-        for x in xrange(32))
     app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+    app.run()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 from flask import Flask, render_template, request, redirect, jsonify, \
     url_for, make_response, g
 from flask import session as login_session
@@ -16,7 +16,7 @@ import string
 app = Flask(__name__)
 app.secret_key = ''.join(
     random.choice(string.ascii_uppercase + string.digits)
-    for x in range(32))
+    for x in xrange(32))
 auth = HTTPBasicAuth()
 CLIENT_ID = json.loads(
     open('/home/catalog/Catalog-Server/client_secrets.json', 'r').read()
@@ -70,7 +70,7 @@ def googleLogin(auth_code):
             scope=''
         )
         oauth_flow.redirect_uri = 'postmessage'
-        credentials = oauth_flow.step2_exchange(auth_code)
+        credentials = oauth_flow.step2_exchange(b'auth_code')
     except FlowExchangeError:
         response = make_response(json.dumps(
             'Failed to upgrade the authorization code'),
@@ -241,7 +241,7 @@ def removeItemFromDb(id):
 @app.route('/')
 def showHome():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in range(32))
+                    for x in xrange(32))
     login_session['state'] = state
     categories = getCategories()
     latestItems = getLatestItems()
@@ -377,7 +377,7 @@ def execute(SQL, params):
         cur.execute(SQL, params)
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        print error
     finally:
         if conn is not None:
             conn.close()
@@ -392,7 +392,7 @@ def query(SQL, params=None):
             cur.execute(SQL)
         results = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        print error
     finally:
         if conn is not None:
             conn.close()

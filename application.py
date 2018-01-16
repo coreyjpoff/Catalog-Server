@@ -14,13 +14,14 @@ import string
 
 # Global vars and constants
 app = Flask(__name__)
-app.secret_key = ''.join(
-    random.choice(string.ascii_uppercase + string.digits)
-    for x in xrange(32))
 auth = HTTPBasicAuth()
 CLIENT_ID = json.loads(
     open('/home/catalog/Catalog-Server/client_secrets.json', 'r').read()
 )['web']['client_id']
+
+app.secret_key = ''.join(
+    random.choice(string.ascii_uppercase + string.digits)
+    for x in xrange(32))
 
 
 # page renders
@@ -70,7 +71,7 @@ def googleLogin(auth_code):
             scope=''
         )
         oauth_flow.redirect_uri = 'postmessage'
-        credentials = oauth_flow.step2_exchange(b'auth_code')
+        credentials = oauth_flow.step2_exchange(auth_code)
     except FlowExchangeError:
         response = make_response(json.dumps(
             'Failed to upgrade the authorization code'),
@@ -177,7 +178,7 @@ def getCategories():
         return categories
     except:
         return []
-        
+
 def getLatestItems():
     try:
         SQL = 'SELECT * FROM categoryitems ORDER BY categoryitems.id DESC LIMIT 10;'
@@ -189,7 +190,7 @@ def getLatestItems():
 def createCategory(name):
     SQL = 'INSERT INTO categories (name) VALUES (%s)'
     execute(SQL, (name,))
-    
+
 def getCategory(id):
     try:
         SQL = 'SELECT * FROM categories WHERE categories.id = %s'
@@ -215,7 +216,7 @@ def updateItem(item):
     SQL = 'UPDATE categoryitems SET name = %s, description = %s, category_id = %s WHERE id = %s'
     execute(SQL, (item[1], item[2], item[3], item[0]))
     return getItemById(item[0])
-    
+
 def getItem(name, description, category_id, user_id):
     try:
         SQL = 'SELECT * FROM categoryitems WHERE categoryitems.name = %s AND categoryitems.description = %s AND categoryitems.category_id = %s AND categoryitems.user_id = %s'
@@ -223,7 +224,7 @@ def getItem(name, description, category_id, user_id):
         return item[0]
     except:
         return []
-        
+
 def getItemById(id):
     try:
         SQL = 'SELECT * FROM categoryitems WHERE categoryitems.id = %s'
@@ -231,7 +232,7 @@ def getItemById(id):
         return item[0]
     except:
         return []
-        
+
 def removeItemFromDb(id):
     SQL = 'DELETE FROM categoryitems WHERE id = %s'
     execute(SQL, (id,))
@@ -297,7 +298,7 @@ def newItem(init_category_id):
     else:
         categories = getCategories()
         if init_category_id == 'NONE' and len(categories) > 0:
-            init_category_id = categories[0].id
+            init_category_id = categories[0][0]
         return render_template(
             'newItem.html',
             categories=categories,

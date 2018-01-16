@@ -16,7 +16,7 @@
     <div id="signInButton">
       <span class="g-signin"
         data-scope="openid email"
-        data-clientid="495071234990-uoc24q9cte0jrvg2nohu0onp8mf6g29k.apps.googleusercontent.com"
+        data-clientid="1001461936419-9j2e8ss959933v7ol26l7v7l1ffhacc7.apps.googleusercontent.com"
         data-redirecturi="postmessage"
         data-accesstype="offline"
         data-cookiepolicy="single_host_origin"
@@ -33,7 +33,7 @@
   </div>
   <div class='catalogDiv'>
     <h2>Catalog</h2>
-    
+
     {% for category in categories %}
     <a href="{{url_for('showCategoryItems', category_id = category[0])}}">
       <p>{{category[1]}}</p>
@@ -52,7 +52,7 @@
     </p>
     {% endif %}
     <h2>Latest Items</h2>
-    
+
     {% for item in latestItems %}
     <p>
       <a href="{{url_for('showItem', category_id=item[3],
@@ -60,7 +60,7 @@
     </p>
     {% endfor %}
   </div>
-  
+
   <script>
     function signInCallback(authResult) {
       if (authResult['code']) {

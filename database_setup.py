@@ -5,13 +5,6 @@ def create_tables():
     """create tables in database"""
     commands = (
     """
-    CREATE TABLE users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL
-    )
-    """,
-    """
     CREATE TABLE categories (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL
@@ -23,12 +16,8 @@ def create_tables():
         name VARCHAR(255) NOT NULL,
         description VARCHAR(1000),
         category_id INTEGER,
-        user_id INTEGER,
         FOREIGN KEY (category_id)
             REFERENCES categories (id)
-            ON UPDATE CASCADE ON DELETE CASCADE,
-        FOREIGN KEY (user_id)
-            REFERENCES users (id)
             ON UPDATE CASCADE ON DELETE CASCADE
     )
     """

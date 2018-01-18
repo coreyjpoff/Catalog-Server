@@ -55,20 +55,21 @@ def getItems(category_id):
     except:
         return []
 
-def addItem(name, description, category_id, user_id):
-    SQL = 'INSERT INTO categoryitems (name, description, category_id, user_id) VALUES (%s, %s, %s, %s)'
-    execute(SQL, (name, description, category_id, user_id))
-    return getItem(name, description, category_id, user_id)
+def addItem(name, description, category_id):
+    user_id = 0
+    SQL = 'INSERT INTO categoryitems (name, description, category_id) VALUES (%s, %s, %s)'
+    execute(SQL, (name, description, category_id))
+    return getItem(name, description, category_id)
 
 def updateItem(item):
     SQL = 'UPDATE categoryitems SET name = %s, description = %s, category_id = %s WHERE id = %s'
     execute(SQL, (item[1], item[2], item[3], item[0]))
     return getItemById(item[0])
 
-def getItem(name, description, category_id, user_id):
+def getItem(name, description, category_id):
     try:
-        SQL = 'SELECT * FROM categoryitems WHERE categoryitems.name = %s AND categoryitems.description = %s AND categoryitems.category_id = %s AND categoryitems.user_id = %s'
-        item = query(SQL, (name, description, category_id, user_id))
+        SQL = 'SELECT * FROM categoryitems WHERE categoryitems.name = %s AND categoryitems.description = %s AND categoryitems.category_id = %s'
+        item = query(SQL, (name, description, category_id))
         return item[0]
     except:
         return []
@@ -132,7 +133,6 @@ def newItem(init_category_id):
             request.form['name'],
             request.form['description'],
             request.form['category_id'],
-            login_session['user_id']
         )
         return redirect(url_for(
             'showItem',

@@ -8,7 +8,7 @@
 <body>
   <div class='catalogDiv'>
     <h1>Catalog</h1>
-    
+
     {% for category in allCategories %}
     <a href="{{url_for('showCategoryItems', category_id=category[0])}}">
       <p>{{category[1]}}</p>
@@ -26,10 +26,8 @@
     <p>{{item[1]}}</p>
   </a>
   {% endfor %}
-  {%if 'username' in session %}
   <a href="{{url_for('newItem', init_category_id=selectedCategory[0])}}">
     <h3>Create a new item</h3>
   </a>
-  {% endif %}
 </body>
 </html>

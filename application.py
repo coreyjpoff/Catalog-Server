@@ -14,10 +14,6 @@ import string
 
 # Global vars and constants
 app = Flask(__name__)
-# auth = HTTPBasicAuth()
-# CLIENT_ID = json.loads(
-#     open('/home/catalog/Catalog-Server/client_secrets.json', 'r').read()
-# )['web']['client_id']
 
 app.secret_key = ''.join(
     random.choice(string.ascii_uppercase + string.digits)
@@ -244,4 +240,4 @@ def query(SQL, params=None):
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+    app.run()
